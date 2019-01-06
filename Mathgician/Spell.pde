@@ -1,19 +1,21 @@
 public class Spell extends MovingEntity {
 
     private static final float BASE_HITBOX = 50;
-    private static final float BASE_SPEED = 4.2;
+    private static final float BASE_SPEED = 7.1;
+    
+    private int accuracy;
+    private Enemy target;
     
     private String name;
-    private int accuracy;
-    
     private int tiltingDirection;
     
     public Spell(String name, Enemy target, int accuracy) {
-        super(0, target.getAngle(), "images/spell.png", Spell.BASE_HITBOX, Spell.BASE_SPEED);
+        super(0, target.getAngle(), "spell", Spell.BASE_HITBOX, Spell.BASE_SPEED);
+        
+        this.accuracy = accuracy;
+        this.target = target;
         
         this.name = name;
-        this.accuracy = accuracy;
-        
         this.tiltingDirection = random(1) < .5 ? 1 : -1;
     }
     
@@ -21,17 +23,16 @@ public class Spell extends MovingEntity {
     public void tick(Mathgician app) {
         super.tick(app);
         
-        this.tilt+= QUARTER_PI / 3 * this.tiltingDirection;
+        this.tilt+= QUARTER_PI / 3f * this.tiltingDirection;
         
-        if (this.accuracy != 0)
-            for (Enemy e : app.enemies) 
-                if (abs(e.getRadius() - this.radius) < e.getHitbox() / 2 + this.hitbox / 2 && 1 / this.accuracy < random(1)) {
-                    e.kill();
-                    this.kill();
-                    app.strikes++;
-                }
+        if (0 < this.accuracy)
+            if (abs(this.target.getRadius() - this.radius) < this.target.getHitbox() / 2f + this.hitbox / 2f) {
+                this.target.kill();
+                this.kill();
+                app.strikes++;
+            }
         
-        if (7 * Enemy.BASE_HITBOX < abs(this.radius))
+        if (6 * Enemy.BASE_HITBOX < abs(this.radius))
             this.kill();
     }
     

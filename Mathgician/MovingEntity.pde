@@ -28,7 +28,7 @@ public class MovingEntity extends Entity {
         
         super.show(app);
         if (0 < header.length)
-            app.text(header[0], -app.textWidth(header[0]) / 2, -this.hitbox / 2);
+            app.text(header[0], -app.textWidth(header[0]) / 2f, -this.hitbox / 2f);
         
         app.popMatrix();
     }
