@@ -18,12 +18,15 @@ public static IntList spawnDelayMax = new IntList();
 public static boolean isSetBased = false;
 public static StringList csSet = new StringList();
 
+public static boolean isTraining = false;
+
+public static final int WAVE_SIZE = 15;
+
 public int nextSpawnDelay;
 public int strikes;
-public static final int WAVE_SIZE = 30;
+public int bossLevel;
 
-public String deathScreenText;
-public PVector deathScreenPosition;
+public Entity deathScreenKiller;
 
 public boolean inMenu;
 public boolean inGame;
@@ -38,7 +41,7 @@ public void setup() {
     this.noCursor();
     this.fill(255);
     
-    this.textFont(this.loadFont("Gabriola-255.vlw"), this.height * .053f);
+    this.textFont(this.loadFont("Dialog.plain-32.vlw"), this.height * .053f);
     
     this.background = loadImage("images/background.png");
     this.foreground = loadImage("images/foreground.png");
@@ -55,7 +58,7 @@ public void init() {
     this.spells = new ArrayList();
     this.enemies = new ArrayList();
     for (String name : this.loadStrings("levels/list.txt"))
-        this.enemies.add(new Enemy(3 * Enemy.BASE_HITBOX, random(TWO_PI), name, name));
+        this.enemies.add(new Enemy(3 * Enemy.BASE_HITBOX, random(TWO_PI), name.replace(' ', '_'), name.replace(' ', '_')));
     
     this.inMenu = true;
     this.inGame = false;
@@ -84,7 +87,11 @@ public void drawMenu() {
     
     this.translate(-this.width / 2f, -this.height / 2f);
     this.image(this.foreground, 0, (this.height - this.foreground.height) / 2f);
-    this.text(" Type an enemy around you!", 0, this.height * .053f);
+    
+    this.textSize(this.height * .053f / 2f);
+    this.text(" Type the name of an enemy around you!", 0, this.height * .053f / 2f);
+    this.text(" Press space to toggle training mode: " + (Mathgician.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f);
+    this.textSize(this.height * .053f);
 }
 
 public void drawGame() {
@@ -113,12 +120,12 @@ public void drawGame() {
             this.spells.remove(k);
     }
     
-    if (Mathgician.WAVE_SIZE < this.strikes - 1) {
+    /*if (Mathgician.WAVE_SIZE < this.strikes - 1) {
         this.inGame = false;
         this.inVictory = true;
         
         this.player.getSpell();
-    }
+    }*/
     
     if (this.player.isDead()) {
         this.inGame = false;
@@ -127,22 +134,29 @@ public void drawGame() {
         this.player.getSpell();
         
         for (Enemy e : this.enemies)
-            if (e.shouldRemove()) {
-                this.deathScreenText = e.getDeathScreen();
+            if (e.isKiller) {
+                this.deathScreenKiller = e;
                 break;
             }
-        this.deathScreenPosition.set(0, 0);
     }
     
     if (--this.nextSpawnDelay < 0 && this.strikes < Mathgician.WAVE_SIZE) {
-        this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI)));
-        this.nextSpawnDelay = int(random(Mathgician.spawnDelayMin.get(int(Mathgician.spawnDelayMin.size() * float(this.strikes / Mathgician.WAVE_SIZE))),
-                                         Mathgician.spawnDelayMax.get(int(Mathgician.spawnDelayMax.size() * float(this.strikes / Mathgician.WAVE_SIZE)))));
+            this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI)));
+            this.nextSpawnDelay = int(random(Mathgician.spawnDelayMin.get(int(Mathgician.spawnDelayMin.size() * float(this.strikes / Mathgician.WAVE_SIZE))),
+                                             Mathgician.spawnDelayMax.get(int(Mathgician.spawnDelayMax.size() * float(this.strikes / Mathgician.WAVE_SIZE)))));
     }
+    
+    
+    if (Mathgician.WAVE_SIZE - 1 < this.strikes) {
+        this.strikes = 0;
+        this.enemies.add(new Enemy(8 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel++));
+        this.nextSpawnDelay = 2 * Mathgician.spawnDelayMax.get(0);
+    } 
     
     this.translate(-this.width / 2f, -this.height / 2f);
     this.image(this.foreground, 0, (this.height - this.foreground.height) / 2f);
     this.text(" Strikes: " + this.strikes + " over " + Mathgician.WAVE_SIZE, 0, this.height * .053f);
+    this.text("Level: " + this.bossLevel, this.width - this.textWidth("Level: " + this.bossLevel), this.height * .053f);
 }
 
 public void drawDeath() {
@@ -150,16 +164,18 @@ public void drawDeath() {
     
     this.translate(this.width / 2f, this.height / 2f);
     
-    this.textSize(this.height);
-    this.text(this.deathScreenText, this.deathScreenPosition.x - this.textWidth(this.deathScreenText) / 2f,
-                                    this.deathScreenPosition.y + this.height / 8f);
-    this.deathScreenPosition.add(PVector.random2D().mult(random(.012f, this.height * .012)));
+    //this.textSize(this.height);
+    //this.text(this.deathScreenText, this.deathScreenPosition.x - this.textWidth(this.deathScreenText) / 2f,
+    //                                this.deathScreenPosition.y + this.height / 8f);
+    //this.deathScreenPosition.add(PVector.random2D().mult(random(this.height * .0001f, this.height * .01)));
+    //
+    //this.textSize(this.height * .053f);
     
-    this.textSize(48);
     this.player.show(this);
-    for (Enemy e : this.enemies)
-        if (e.shouldRemove())
-            e.show(this);
+    this.deathScreenKiller.show(this);
+    
+    if (keyPressed && key == ENTER)
+        this.init();
 }
 
 public void drawVictory() {
@@ -167,8 +183,10 @@ public void drawVictory() {
     this.translate(this.width / 2f, this.height / 2f);
     
     this.player.show(this);
-    
     this.player.dance();
+    
+    if (keyPressed && key == ENTER)
+        this.init();
 }
 
 public void draw() {
@@ -191,6 +209,8 @@ public void keyTyped() {
             this.spells.addAll(this.player.shoot(this.enemies));
         else if (this.key == BACKSPACE)
             this.player.oops();
+        else if (this.inMenu && this.key == ' ')
+            Mathgician.isTraining = !Mathgician.isTraining;
         else if (this.key != CODED)
             this.player.casting(this.key);
     }
@@ -237,7 +257,7 @@ public void loadLevel(String name) {
     
     this.nextSpawnDelay = int(random(Mathgician.spawnDelayMin.get(0), Mathgician.spawnDelayMax.get(0)));
     this.strikes = 0;
+    this.bossLevel = 1;
     
-    this.deathScreenText = "";
-    this.deathScreenPosition = new PVector();
+    this.deathScreenKiller = null;
 }

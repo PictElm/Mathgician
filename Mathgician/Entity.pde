@@ -25,7 +25,7 @@ public class Entity {
     protected PImage image;
     
     protected float hitbox;
-    private boolean isDead;
+    protected boolean isDead;
 
     public Entity(String imageFileName, float hitboxSize) {
         this.image = this.getImage(imageFileName);
@@ -50,14 +50,16 @@ public class Entity {
     }
     
     public void show(Mathgician app) {
-        app.pushMatrix();
-        
-        app.scale(this.hitbox / this.image.width, this.hitbox / this.image.height);
-        app.translate(-this.image.width / 2f, -this.image.height / 2f);
-        
-        app.image(this.image, 0, 0);
-        
-        app.popMatrix();
+        if (this.image != null) {
+            app.pushMatrix();
+            
+            app.scale(this.hitbox / this.image.width, this.hitbox / this.image.height);
+            app.translate(-this.image.width / 2f, -this.image.height / 2f);
+            
+            app.image(this.image, 0, 0);
+            
+            app.popMatrix();
+        }
     }
     
     public float getHitbox() {

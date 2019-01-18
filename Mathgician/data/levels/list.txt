@@ -1,2 +1,2 @@
-op-based
-set-based
+operations
+hiragana

@@ -112,6 +112,7 @@ public class Player extends Entity {
     public void dance() {
         if (random(1) < .0001)
             this.lastFacing = random(TWO_PI);
+        //this.lastFacing+= QUARTER_PI / 120f;
         
         this.imageComplement = Mathgician.directionalComplement(this.lastFacing, +1);
         this.image = this.images[0 < this.imageComplement ? this.imageComplement : int(random(4))];
@@ -120,6 +121,8 @@ public class Player extends Entity {
             this.lastFacing-= PI * (this.imageComplement - .5);
         else
             this.lastFacing-= PI * (this.imageComplement - 4);
+        
+        delay(150);
     }
     
 }

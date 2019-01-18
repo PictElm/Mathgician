@@ -15,10 +15,11 @@ public class MovingEntity extends Entity {
         
         this.speed = outMovingSpeed;
         
-        this.tilt = 0;
+        this.tilt = random(-QUARTER_PI / 3f, QUARTER_PI / 3f);
     }
     
     public void show(Mathgician app, String... header) {
+        final float distanceLimit = app.height * 11f / 23f;
         app.pushMatrix();
         
         app.rotate(this.angle);
@@ -27,10 +28,15 @@ public class MovingEntity extends Entity {
         app.rotate(this.tilt - this.angle);
         
         super.show(app);
-        if (0 < header.length)
+        if (0 < header.length && this.radius < distanceLimit)
             app.text(header[0], -app.textWidth(header[0]) / 2f, -this.hitbox / 2f);
         
         app.popMatrix();
+        
+        if (0 < header.length && distanceLimit < this.radius) {
+            PVector pos = PVector.fromAngle(this.angle).mult(distanceLimit);
+            app.text(header[0], pos.x - textWidth(header[0]) / 2f, pos.y + app.height * .053f / 2f);
+        }
     }
     
     public void tick(Mathgician app) {

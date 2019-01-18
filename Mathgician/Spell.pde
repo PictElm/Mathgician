@@ -15,7 +15,7 @@ public class Spell extends MovingEntity {
         this.accuracy = accuracy;
         this.target = target;
         
-        this.name = name;
+        this.name = "";//name;
         this.tiltingDirection = random(1) < .5 ? 1 : -1;
     }
     
