@@ -62,7 +62,7 @@ public class Player extends Entity {
             r.add(new Spell(this.spellName, t, bestAccuracy));
         
         this.lastFacing = r.get(int(random(r.size()))).getAngle();
-        this.imageComplement = Mathgician.directionalComplement(this.lastFacing, +1);
+        this.imageComplement = Reconjurer.directionalComplement(this.lastFacing, +1);
         this.image = this.images[this.imageComplement];
         
         if (this.imageComplement < 2)
@@ -86,7 +86,7 @@ public class Player extends Entity {
     }
     
     @Override
-    public void show(Mathgician app) {
+    public void show(Reconjurer app) {
         app.pushMatrix();
         
         app.rotate(this.lastFacing);
@@ -114,7 +114,7 @@ public class Player extends Entity {
             this.lastFacing = random(TWO_PI);
         //this.lastFacing+= QUARTER_PI / 120f;
         
-        this.imageComplement = Mathgician.directionalComplement(this.lastFacing, +1);
+        this.imageComplement = Reconjurer.directionalComplement(this.lastFacing, +1);
         this.image = this.images[0 < this.imageComplement ? this.imageComplement : int(random(4))];
         
         if (this.imageComplement < 2)

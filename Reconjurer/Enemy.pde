@@ -13,13 +13,13 @@ public class Enemy extends MovingEntity {
     
     public boolean isKiller;
     
-    public Enemy(float distanceFromCenter, float angleOfApproache) {
+    public Enemy(float distanceFromCenter, float angleOfApproache, int maxStage) {
         super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Mathgician.directionalComplement(angleOfApproache, -1),
+              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
               Enemy.BASE_HITBOX, -Enemy.BASE_SPEED);
         
-        this.createRiddle(0);
-        if (Mathgician.isTraining)
+        this.createRiddle(0, maxStage);
+        if (Reconjurer.isTraining)
             this.riddle+= "—" + this.solution;
         
         this.isLevelName = false;
@@ -28,13 +28,13 @@ public class Enemy extends MovingEntity {
         this.tiltingDirection = random(1) < .5 ? 1 : -1;
     }
     
-    public Enemy(float distanceFromCenter, float angleOfApproache, int bossLevel) {
+    public Enemy(float distanceFromCenter, float angleOfApproache, int maxStage, int bossLevel) {
         super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Mathgician.directionalComplement(angleOfApproache, -1),
+              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
               Enemy.BASE_HITBOX * 2f, -Enemy.BASE_SPEED / 2f);
         
-        this.createRiddle(bossLevel);
-        if (Mathgician.isTraining)
+        this.createRiddle(bossLevel, maxStage);
+        if (Reconjurer.isTraining)
             this.riddle+= " — " + this.solution;
         
         this.isLevelName = false;
@@ -45,7 +45,7 @@ public class Enemy extends MovingEntity {
     
     public Enemy(float distanceFromCenter, float angleOfApproache, String display, String index) {
         super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Mathgician.directionalComplement(angleOfApproache, -1),
+              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
               Enemy.BASE_HITBOX, 0);
         
         this.riddle = display;
@@ -61,13 +61,14 @@ public class Enemy extends MovingEntity {
         return trial.equals(this.solution) ? 1 : 0;
     }
     
-    public void createRiddle(int bossLevel) {
-        if (Mathgician.isSetBased) {
+    public void createRiddle(int bossLevel, int maxStage) {
+        if (Reconjurer.isSetBased) {
             this.riddle = "";
             this.solution = "";
             
             for (int k = 0; k < bossLevel + 1; k++) {
-                String s = Mathgician.csSet.get(int(random(Mathgician.csSet.size())));
+                StringList stage = Reconjurer.csSet.get(int(random(min(maxStage, Reconjurer.csSet.size()))));
+                String s = stage.get(int(random(stage.size())));
                 String[] qna = s.split(",");
                 
                 this.riddle+= qna[0];
@@ -78,7 +79,7 @@ public class Enemy extends MovingEntity {
         }
         
         int ix = int(random(3));
-        int a = int(random(Mathgician.limitsOpsAMin.get(ix), Mathgician.limitsOpsAMax.get(ix) + 1));
+        int a = int(random(Reconjurer.limitsOpsAMin.get(ix), Reconjurer.limitsOpsAMax.get(ix) + 1));
         
         this.riddle = str(a);
         this.solution = "";
@@ -86,8 +87,8 @@ public class Enemy extends MovingEntity {
         int s = 0;
         
         for (int k = 0; k < bossLevel + 1; k++) {
-            char op = Mathgician.operators.charAt(ix);
-            int b = int(random(Mathgician.limitsOpsBMin.get(ix), Mathgician.limitsOpsBMax.get(ix) + 1));
+            char op = Reconjurer.operators.charAt(ix);
+            int b = int(random(Reconjurer.limitsOpsBMin.get(ix), Reconjurer.limitsOpsBMax.get(ix) + 1));
             
             switch (op) {
             
@@ -144,12 +145,12 @@ public class Enemy extends MovingEntity {
     }
     
     @Override
-    public void show(Mathgician app) {
+    public void show(Reconjurer app) {
         super.show(app, this.riddle);
     }
     
     @Override
-    public void tick(Mathgician app) {
+    public void tick(Reconjurer app) {
         super.tick(app);
         
         if (this.isDead) {

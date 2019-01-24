@@ -20,7 +20,7 @@ public class Spell extends MovingEntity {
     }
     
     @Override
-    public void tick(Mathgician app) {
+    public void tick(Reconjurer app) {
         super.tick(app);
         
         this.tilt+= QUARTER_PI / 3f * this.tiltingDirection;
@@ -37,7 +37,7 @@ public class Spell extends MovingEntity {
     }
     
     @Override
-    public void show(Mathgician app) {
+    public void show(Reconjurer app) {
         super.show(app, this.name);
     }
     

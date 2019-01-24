@@ -16,7 +16,7 @@ public static IntList spawnDelayMin = new IntList();
 public static IntList spawnDelayMax = new IntList();
 
 public static boolean isSetBased = false;
-public static StringList csSet = new StringList();
+public static ArrayList<StringList> csSet = new ArrayList(); //new StringList();
 
 public static boolean isTraining = false;
 
@@ -53,6 +53,8 @@ public void setup() {
 }
 
 public void init() {
+    Reconjurer.isSetBased = false;
+    
     this.player = new Player();
     
     this.spells = new ArrayList();
@@ -90,7 +92,7 @@ public void drawMenu() {
     
     this.textSize(this.height * .053f / 2f);
     this.text(" Type the name of an enemy around you!", 0, this.height * .053f / 2f);
-    this.text(" Press space to toggle training mode: " + (Mathgician.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f);
+    this.text(" Press space to toggle training mode: " + (Reconjurer.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f);
     this.textSize(this.height * .053f);
 }
 
@@ -106,8 +108,9 @@ public void drawGame() {
         e.tick(this);
         e.show(this);
         
-        if (e.shouldRemove() && !player.isDead())
+        if (e.shouldRemove() && !player.isDead()) {
             this.enemies.remove(k);
+        }
     }
     
     for (int k = 0; k < this.spells.size(); k++) {
@@ -120,7 +123,7 @@ public void drawGame() {
             this.spells.remove(k);
     }
     
-    /*if (Mathgician.WAVE_SIZE < this.strikes - 1) {
+    /*if (Reconjurer.WAVE_SIZE < this.strikes - 1) {
         this.inGame = false;
         this.inVictory = true;
         
@@ -140,22 +143,22 @@ public void drawGame() {
             }
     }
     
-    if (--this.nextSpawnDelay < 0 && this.strikes < Mathgician.WAVE_SIZE) {
-            this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI)));
-            this.nextSpawnDelay = int(random(Mathgician.spawnDelayMin.get(int(Mathgician.spawnDelayMin.size() * float(this.strikes / Mathgician.WAVE_SIZE))),
-                                             Mathgician.spawnDelayMax.get(int(Mathgician.spawnDelayMax.size() * float(this.strikes / Mathgician.WAVE_SIZE)))));
+    if (--this.nextSpawnDelay < 0 && this.strikes < Reconjurer.WAVE_SIZE) {
+            this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel));
+            this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin.get(int(Reconjurer.spawnDelayMin.size() * float(this.strikes / Reconjurer.WAVE_SIZE))),
+                                             Reconjurer.spawnDelayMax.get(int(Reconjurer.spawnDelayMax.size() * float(this.strikes / Reconjurer.WAVE_SIZE)))));
     }
     
     
-    if (Mathgician.WAVE_SIZE - 1 < this.strikes) {
+    if (Reconjurer.WAVE_SIZE - 1 < this.strikes) {
         this.strikes = 0;
-        this.enemies.add(new Enemy(8 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel++));
-        this.nextSpawnDelay = 2 * Mathgician.spawnDelayMax.get(0);
+        this.enemies.add(new Enemy(8 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel, this.bossLevel++));
+        this.nextSpawnDelay = 2 * Reconjurer.spawnDelayMax.get(0);
     } 
     
     this.translate(-this.width / 2f, -this.height / 2f);
     this.image(this.foreground, 0, (this.height - this.foreground.height) / 2f);
-    this.text(" Strikes: " + this.strikes + " over " + Mathgician.WAVE_SIZE, 0, this.height * .053f);
+    this.text(" Strikes: " + this.strikes + " over " + Reconjurer.WAVE_SIZE, 0, this.height * .053f);
     this.text("Level: " + this.bossLevel, this.width - this.textWidth("Level: " + this.bossLevel), this.height * .053f);
 }
 
@@ -163,13 +166,6 @@ public void drawDeath() {
     this.background(0);
     
     this.translate(this.width / 2f, this.height / 2f);
-    
-    //this.textSize(this.height);
-    //this.text(this.deathScreenText, this.deathScreenPosition.x - this.textWidth(this.deathScreenText) / 2f,
-    //                                this.deathScreenPosition.y + this.height / 8f);
-    //this.deathScreenPosition.add(PVector.random2D().mult(random(this.height * .0001f, this.height * .01)));
-    //
-    //this.textSize(this.height * .053f);
     
     this.player.show(this);
     this.deathScreenKiller.show(this);
@@ -210,44 +206,49 @@ public void keyTyped() {
         else if (this.key == BACKSPACE)
             this.player.oops();
         else if (this.inMenu && this.key == ' ')
-            Mathgician.isTraining = !Mathgician.isTraining;
+            Reconjurer.isTraining = !Reconjurer.isTraining;
         else if (this.key != CODED)
             this.player.casting(this.key);
     }
 }
 
 public void loadLevel(String name) {
-    String[] datas = loadStrings("levels/" + name + ".txt");
+    String[] data = loadStrings("levels/" + name + ".txt");
     
-    for (String line : datas)
+    for (String line : data) {
+        println(line);
         switch(line.charAt(0)) {
             
             case '+':
             case '-':
             case 'x':
             case '/':
-                    Mathgician.operators+= line.charAt(0);
+                    Reconjurer.operators+= line.charAt(0);
                     String[] limsOps = line.substring(2, line.length()).split(";");
-                    Mathgician.limitsOpsAMin.append(int(limsOps[0].split(",")[0]));
-                    Mathgician.limitsOpsAMax.append(int(limsOps[0].split(",")[1]));
-                    Mathgician.limitsOpsBMin.append(int(limsOps[1].split(",")[0]));
-                    Mathgician.limitsOpsBMax.append(int(limsOps[1].split(",")[1]));
+                    Reconjurer.limitsOpsAMin.append(int(limsOps[0].split(",")[0]));
+                    Reconjurer.limitsOpsAMax.append(int(limsOps[0].split(",")[1]));
+                    Reconjurer.limitsOpsBMin.append(int(limsOps[1].split(",")[0]));
+                    Reconjurer.limitsOpsBMax.append(int(limsOps[1].split(",")[1]));
                 break;
             
             case 't':
                     String[] limsDly = line.substring(2, line.length()).split(";");
                     for (int k = 0; k < limsDly.length; k++) {
-                        Mathgician.spawnDelayMin.append(int(limsDly[k].split(",")[0]));
-                        Mathgician.spawnDelayMax.append(int(limsDly[k].split(",")[1]));
+                        Reconjurer.spawnDelayMin.append(int(limsDly[k].split(",")[0]));
+                        Reconjurer.spawnDelayMax.append(int(limsDly[k].split(",")[1]));
                     }
                 break;
             
             case 's':
-                    Mathgician.isSetBased = true;
-                    for (String q : line.substring(2, line.length()).split(";"))
-                        Mathgician.csSet.append(q);
+                    Reconjurer.isSetBased = true;
+                    for (String l : line.substring(2, line.length()).split("&")) {
+                        Reconjurer.csSet.add(new StringList());
+                        for (String q : l.split(";"))
+                            Reconjurer.csSet.get(Reconjurer.csSet.size() - 1).append(q);
+                    }
                 break;
         }
+    }
     
     this.inMenu = false;
     this.inGame = true;
@@ -255,7 +256,7 @@ public void loadLevel(String name) {
     this.enemies = new ArrayList();
     this.spells = new ArrayList();
     
-    this.nextSpawnDelay = int(random(Mathgician.spawnDelayMin.get(0), Mathgician.spawnDelayMax.get(0)));
+    this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin.get(0), Reconjurer.spawnDelayMax.get(0)));
     this.strikes = 0;
     this.bossLevel = 1;
     

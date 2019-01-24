@@ -36,20 +36,20 @@ public class Entity {
     
     public PImage getImage(String name) {
         int k;
-        for (k = 0; k < Mathgician.LOADED_COUNTER; k++)
-            if (Mathgician.LOADED_NAMES.get(k) == name)
+        for (k = 0; k < Reconjurer.LOADED_COUNTER; k++)
+            if (Reconjurer.LOADED_NAMES.get(k) == name)
                 break;
         
-        if (k == Mathgician.LOADED_COUNTER) {
-            Mathgician.LOADED_IMAGES.add(loadImage("images/" + name + ".png"));
-            Mathgician.LOADED_NAMES.add(name);
-            Mathgician.LOADED_COUNTER++;
+        if (k == Reconjurer.LOADED_COUNTER) {
+            Reconjurer.LOADED_IMAGES.add(loadImage("images/" + name + ".png"));
+            Reconjurer.LOADED_NAMES.add(name);
+            Reconjurer.LOADED_COUNTER++;
         }
         
-        return Mathgician.LOADED_IMAGES.get(k);
+        return Reconjurer.LOADED_IMAGES.get(k);
     }
     
-    public void show(Mathgician app) {
+    public void show(Reconjurer app) {
         if (this.image != null) {
             app.pushMatrix();
             

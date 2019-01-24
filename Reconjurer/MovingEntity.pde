@@ -18,7 +18,7 @@ public class MovingEntity extends Entity {
         this.tilt = random(-QUARTER_PI / 3f, QUARTER_PI / 3f);
     }
     
-    public void show(Mathgician app, String... header) {
+    public void show(Reconjurer app, String... header) {
         final float distanceLimit = app.height * 11f / 23f;
         app.pushMatrix();
         
@@ -39,7 +39,7 @@ public class MovingEntity extends Entity {
         }
     }
     
-    public void tick(Mathgician app) {
+    public void tick(Reconjurer app) {
         this.radius+= this.speed;
     }
     
