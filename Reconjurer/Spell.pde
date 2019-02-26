@@ -14,6 +14,7 @@ public class Spell extends MovingEntity {
         
         this.accuracy = accuracy;
         this.target = target;
+        this.tilt = target.getAngle();
         
         this.name = "";//name;
         this.tiltingDirection = random(1) < .5 ? 1 : -1;
@@ -23,7 +24,7 @@ public class Spell extends MovingEntity {
     public void tick(Reconjurer app) {
         super.tick(app);
         
-        this.tilt+= QUARTER_PI / 3f * this.tiltingDirection;
+        //this.tilt+= QUARTER_PI / 3f * this.tiltingDirection;
         
         if (0 < this.accuracy)
             if (abs(this.target.getRadius() - this.radius) < this.target.getHitbox() / 2f + this.hitbox / 2f) {

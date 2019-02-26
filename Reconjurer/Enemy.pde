@@ -1,7 +1,7 @@
 public class Enemy extends MovingEntity {
 
     private static final float BASE_HITBOX = 100;
-    private static final float BASE_SPEED = 0.8;
+    private static final float BASE_SPEED = 0.72;
     
     private String riddle;
     private String solution;
@@ -58,7 +58,7 @@ public class Enemy extends MovingEntity {
     }
     
     public int evaluateAnswer(String trial) {
-        return trial.equals(this.solution) ? 1 : 0;
+        return trial.trim().equals(this.solution.trim()) ? 1 : 0;
     }
     
     public void createRiddle(int bossLevel, int maxStage) {
@@ -66,10 +66,13 @@ public class Enemy extends MovingEntity {
             this.riddle = "";
             this.solution = "";
             
+            if (Reconjurer.csSet.size() == 1 && bossLevel == 0)
+                bossLevel = maxStage - 1;
+            
             for (int k = 0; k < bossLevel + 1; k++) {
                 StringList stage = Reconjurer.csSet.get(int(random(min(maxStage, Reconjurer.csSet.size()))));
                 String s = stage.get(int(random(stage.size())));
-                String[] qna = s.split(",");
+                String[] qna = s.split(":");
                 
                 this.riddle+= qna[0];
                 this.solution+= qna[1];
@@ -78,7 +81,7 @@ public class Enemy extends MovingEntity {
             return;
         }
         
-        int ix = int(random(3));
+        int ix = int(random(Reconjurer.limitsOpsAMin.size()));
         int a = int(random(Reconjurer.limitsOpsAMin.get(ix), Reconjurer.limitsOpsAMax.get(ix) + 1));
         
         this.riddle = str(a);
@@ -134,7 +137,7 @@ public class Enemy extends MovingEntity {
             
             this.riddle+= "—" + this.solution;
             this.beforeRemoveDelay = 60;
-            this.image = null;
+            this.image = super.getImage("dead");
             this.speed = 0;
         }
     }
@@ -170,6 +173,7 @@ public class Enemy extends MovingEntity {
             app.player.kill();
             this.kill();
             app.strikes = 0;
+            app.bossLevel--;
             
             if (app.player.isDead())
                 this.isKiller = true;
