@@ -5,3 +5,5 @@ Reconjurer/application.linux64
 Reconjurer/application.windows32
 Reconjurer/application.windows64
 Reconjurer/application.macosx
+*.ign
+*.ign/

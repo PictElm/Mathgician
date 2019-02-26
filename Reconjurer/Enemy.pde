@@ -1,7 +1,7 @@
 public class Enemy extends MovingEntity {
 
     private static final float BASE_HITBOX = 100;
-    private static final float BASE_SPEED = 0.72;
+    private static final float BASE_SPEED = 0.51;
     
     private String riddle;
     private String solution;
@@ -13,14 +13,18 @@ public class Enemy extends MovingEntity {
     
     public boolean isKiller;
     
-    public Enemy(float distanceFromCenter, float angleOfApproache, int maxStage) {
+    private Enemy(float distanceFromCenter, float angleOfApproache, float hitbox, float speed) {
         super(distanceFromCenter, angleOfApproache, 
               "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
-              Enemy.BASE_HITBOX, -Enemy.BASE_SPEED);
+              hitbox, -speed); // toward center
+    }
+    
+    public Enemy(float distanceFromCenter, float angleOfApproache, int bossLevel, boolean isTraining, float mult) {
+        this(distanceFromCenter, angleOfApproache, Enemy.BASE_HITBOX * mult, Enemy.BASE_SPEED / mult);
         
-        this.createRiddle(0, maxStage);
-        if (Reconjurer.isTraining)
-            this.riddle+= "—" + this.solution;
+        this.createRiddle(bossLevel);
+        if (isTraining)
+            this.riddle+= ": " + this.solution;
         
         this.isLevelName = false;
         this.isKiller = false;
@@ -28,25 +32,12 @@ public class Enemy extends MovingEntity {
         this.tiltingDirection = random(1) < .5 ? 1 : -1;
     }
     
-    public Enemy(float distanceFromCenter, float angleOfApproache, int maxStage, int bossLevel) {
-        super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
-              Enemy.BASE_HITBOX * 2f, -Enemy.BASE_SPEED / 2f);
-        
-        this.createRiddle(bossLevel, maxStage);
-        if (Reconjurer.isTraining)
-            this.riddle+= " — " + this.solution;
-        
-        this.isLevelName = false;
-        this.isKiller = false;
-        
-        this.tiltingDirection = random(1) < .5 ? 1 : -1;
+    public Enemy(float distanceFromCenter, float angleOfApproache, int bossLevel, boolean isTraining) {
+        this(distanceFromCenter, angleOfApproache, bossLevel, isTraining, 1f);
     }
     
     public Enemy(float distanceFromCenter, float angleOfApproache, String display, String index) {
-        super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
-              Enemy.BASE_HITBOX, 0);
+        this(distanceFromCenter, angleOfApproache, Enemy.BASE_HITBOX, 0);
         
         this.riddle = display;
         this.solution = index;
@@ -61,18 +52,14 @@ public class Enemy extends MovingEntity {
         return trial.trim().equals(this.solution.trim()) ? 1 : 0;
     }
     
-    public void createRiddle(int bossLevel, int maxStage) {
+    public void createRiddle(int bossLevel) {
         if (Reconjurer.isSetBased) {
             this.riddle = "";
             this.solution = "";
             
-            if (Reconjurer.csSet.size() == 1 && bossLevel == 0)
-                bossLevel = maxStage - 1;
-            
-            for (int k = 0; k < bossLevel + 1; k++) {
-                StringList stage = Reconjurer.csSet.get(int(random(min(maxStage, Reconjurer.csSet.size()))));
-                String s = stage.get(int(random(stage.size())));
-                String[] qna = s.split(":");
+            for (int k = 0; k < bossLevel; k++) {
+                
+                String[] qna = Reconjurer.csSet.get(int(random(Reconjurer.csSet.size()))).split(":");
                 
                 this.riddle+= qna[0];
                 this.solution+= qna[1];
@@ -81,7 +68,7 @@ public class Enemy extends MovingEntity {
             return;
         }
         
-        int ix = int(random(Reconjurer.limitsOpsAMin.size()));
+        int ix = int(random(Reconjurer.operators.length()));
         int a = int(random(Reconjurer.limitsOpsAMin.get(ix), Reconjurer.limitsOpsAMax.get(ix) + 1));
         
         this.riddle = str(a);
@@ -89,7 +76,7 @@ public class Enemy extends MovingEntity {
             
         int s = 0;
         
-        for (int k = 0; k < bossLevel + 1; k++) {
+        for (int k = 0; k < bossLevel; k++) {
             char op = Reconjurer.operators.charAt(ix);
             int b = int(random(Reconjurer.limitsOpsBMin.get(ix), Reconjurer.limitsOpsBMax.get(ix) + 1));
             
@@ -112,8 +99,11 @@ public class Enemy extends MovingEntity {
                 break;
             }
             
+            if (k != 0 && (op == 'x' || op == '/'))
+                this.riddle = "(" + this.riddle + ")";
             this.riddle+= " " + op + " " + str(b);
             
+            ix = int(random(Reconjurer.operators.length()));
             a = int(s);
         }
         this.solution = str(int(s));
@@ -135,7 +125,11 @@ public class Enemy extends MovingEntity {
         else if (!this.isDead) {
             super.kill();
             
-            this.riddle+= "—" + this.solution;
+            if (0 < this.evaluateAnswer(this.riddle))
+                this.riddle = "";
+            else
+                this.riddle+= " : " + this.solution;
+            
             this.beforeRemoveDelay = 60;
             this.image = super.getImage("dead");
             this.speed = 0;
@@ -173,10 +167,14 @@ public class Enemy extends MovingEntity {
             app.player.kill();
             this.kill();
             app.strikes = 0;
-            app.bossLevel--;
             
-            if (app.player.isDead())
+            if (1 < app.bossLevel && random(1) < .2)
+                app.bossLevel--;
+            
+            if (app.player.isDead()) {
                 this.isKiller = true;
+                this.image = null;
+            }
         }
     }
     

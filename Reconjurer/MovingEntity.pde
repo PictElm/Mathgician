@@ -19,7 +19,7 @@ public class MovingEntity extends Entity {
     }
     
     public void show(Reconjurer app, String... header) {
-        final float distanceLimit = app.height * 11f / 23f;
+        final float distanceLimit = app.height * .42f;
         app.pushMatrix();
         
         app.rotate(this.angle);

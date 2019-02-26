@@ -6,24 +6,24 @@ public ArrayList<Spell> spells;
 public PImage background;
 public PImage foreground;
 
-public static String operators = "";
+public static String operators;
 
-public static IntList spawnDelayMin = new IntList();
-public static IntList spawnDelayMax = new IntList();
-
-public static IntList limitsOpsAMin = new IntList();
-public static IntList limitsOpsAMax = new IntList();
-public static IntList limitsOpsBMin = new IntList();
-public static IntList limitsOpsBMax = new IntList();
-
-public static boolean isSetBased = false;
-public static ArrayList<StringList> csSet = new ArrayList(); //new StringList();
-
-public static boolean isTraining = false;
-
-public static final int WAVE_SIZE = 15;
-
+public static int[] spawnDelayMin;
+public static int[] spawnDelayMax;
+public static int spawnDelayCount;
 public int nextSpawnDelay;
+
+public static IntList limitsOpsAMin;
+public static IntList limitsOpsAMax;
+public static IntList limitsOpsBMin;
+public static IntList limitsOpsBMax;
+
+public static boolean isSetBased;
+public static StringList csSet;
+
+public boolean isTraining;
+
+public int waveSize;
 public int strikes;
 public int bossLevel;
 
@@ -57,17 +57,22 @@ public void setup() {
 }
 
 public void init() {
+    Reconjurer.operators = "";
+    
     Reconjurer.isSetBased = false;
+    this.isTraining = false;
     
     this.player = new Player();
     
     this.spells = new ArrayList();
     this.enemies = new ArrayList();
-    //for (String name : this.loadStrings("levels/list.txt"))
-    for (String name : this.loadFiles(sketchPath() + "/data/levels/"))
-        if (name.contains(".txt")) {
+    
+    int k = 0;
+    String[] levelNames = this.loadFiles(sketchPath() + "/data/levels/");
+    for (String name : levelNames)
+        if (name.endsWith(".txt")) {
             String tmp = name.substring(0, name.length() - 4).replace(' ', '_');
-            this.enemies.add(new Enemy(3 * Enemy.BASE_HITBOX, random(TWO_PI), tmp, tmp));
+            this.enemies.add(new Enemy(3 * Enemy.BASE_HITBOX, k++ * TWO_PI / levelNames.length, tmp, tmp));
         }
     
     this.inMenu = true;
@@ -102,9 +107,11 @@ public void drawMenu() {
     this.image(this.foreground, 0, (this.height - this.foreground.height) / 2f);
     
     this.textSize(this.height * .053f / 2f);
-    this.text(" Type the name of an enemy around you!", 0, this.height * .053f / 2f);
-    this.text(" Press space to toggle training mode: " + (Reconjurer.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f);
+    this.textLabel(" Type the name of an enemy around you!", 0, this.height * .053f / 2f, color(255), color(0), this.height * .053f / 2f);
+    this.textLabel(" Press space to toggle training mode: " + (this.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f, color(255), color(0), this.height * .053f / 2f);
     this.textSize(this.height * .053f);
+    
+    this.fill(0);
 }
 
 public void drawGame() {
@@ -134,13 +141,6 @@ public void drawGame() {
             this.spells.remove(k);
     }
     
-    /*if (Reconjurer.WAVE_SIZE < this.strikes - 1) {
-        this.inGame = false;
-        this.inVictory = true;
-        
-        this.player.getSpell();
-    }*/
-    
     if (this.player.isDead()) {
         this.inGame = false;
         this.inDeath = true;
@@ -154,29 +154,30 @@ public void drawGame() {
             }
     }
     
-    if (--this.nextSpawnDelay < 0 && this.strikes < Reconjurer.WAVE_SIZE && this.enemies.size() < 7) {
-            this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel));
-            this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin.get(int(Reconjurer.spawnDelayMin.size() * float(this.strikes / Reconjurer.WAVE_SIZE))),
-                                             Reconjurer.spawnDelayMax.get(int(Reconjurer.spawnDelayMax.size() * float(this.strikes / Reconjurer.WAVE_SIZE)))));
+    if (--this.nextSpawnDelay < 0 && this.strikes < this.waveSize && this.enemies.size() < 7) {
+            this.enemies.add(new Enemy(7 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel, this.isTraining));
+            this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin[int(Reconjurer.spawnDelayCount * float(this.strikes) / this.waveSize)],
+                                             Reconjurer.spawnDelayMax[int(Reconjurer.spawnDelayCount * float(this.strikes) / this.waveSize)]));
     }
     
     
-    if (Reconjurer.WAVE_SIZE - 1 < this.strikes) {
+    if (this.waveSize - 1 < this.strikes && this.enemies.size() < 1) {
         this.strikes = 0;
-        this.enemies.add(new Enemy(8 * Enemy.BASE_HITBOX, random(TWO_PI), this.bossLevel, this.bossLevel++));
-        this.nextSpawnDelay = 2 * Reconjurer.spawnDelayMax.get(0);
+        this.enemies.add(new Enemy(8 * Enemy.BASE_HITBOX, random(TWO_PI), ++this.bossLevel + 1, this.isTraining, 2));
+        this.nextSpawnDelay = 2 * Reconjurer.spawnDelayMax[0];
     } 
     
     this.translate(-this.width / 2f, -this.height / 2f);
     this.image(this.foreground, 0, (this.height - this.foreground.height) / 2f);
     
-    this.fill(0);
-    this.rect(0, 0, this.textWidth(" Strikes: " + this.strikes + " over " + Reconjurer.WAVE_SIZE), this.height * .053);
-    this.rect(this.width - this.textWidth("Level: " + this.bossLevel), 0, this.textWidth("Level: " + this.bossLevel), this.height * .053);
+    String tmp;
+    if (this.strikes < this.waveSize)
+        tmp = " Strikes: " + this.strikes + " over " + this.waveSize;
+    else
+        tmp = " Boss approaching!";
     
-    this.fill(255);
-    this.text(" Strikes: " + this.strikes + " over " + Reconjurer.WAVE_SIZE, 0, this.height * .053f);
-    this.text("Level: " + this.bossLevel, this.width - this.textWidth("Level: " + this.bossLevel), this.height * .053f);
+    this.textLabel(tmp, 0, this.height * .053f, color(255), color(0), this.height * .053f);
+    this.textLabel("Level: " + this.bossLevel, this.width - this.textWidth("Level: " + this.bossLevel), this.height * .053f, color(255), color(0), this.height * .053f);
     
     this.fill(0);
 }
@@ -228,7 +229,7 @@ public void keyTyped() {
         else if (this.key == BACKSPACE)
             this.player.oops();
         else if (this.inMenu && this.key == ' ')
-            Reconjurer.isTraining = !Reconjurer.isTraining;
+            this.isTraining = !this.isTraining;
         else if (this.key != CODED)
             this.player.casting(this.key);
     }
@@ -236,19 +237,27 @@ public void keyTyped() {
 
 public void loadLevel(String name) {
     this.bossLevel = 1;
+    this.waveSize = 15;
     
     String[] data = loadStrings("levels/" + name + ".txt");
     
     for (String line : data) {
         if (line.charAt(0) == '_' && line.charAt(2) == ':') {
-            
             switch (line.charAt(1)) {
                 case '+':
                 case '-':
                 case 'x':
                 case '/':
+                        if (Reconjurer.operators == "") {
+                            Reconjurer.limitsOpsAMin = new IntList();
+                            Reconjurer.limitsOpsAMax = new IntList();
+                            Reconjurer.limitsOpsBMin = new IntList();
+                            Reconjurer.limitsOpsBMax = new IntList();
+                        }
                         Reconjurer.operators+= line.charAt(1);
+                        
                         String[] limsOps = line.substring(3, line.length()).trim().split(";");
+                        
                         Reconjurer.limitsOpsAMin.append(int(limsOps[0].split(",")[0]));
                         Reconjurer.limitsOpsAMax.append(int(limsOps[0].split(",")[1]));
                         Reconjurer.limitsOpsBMin.append(int(limsOps[1].split(",")[0]));
@@ -257,39 +266,45 @@ public void loadLevel(String name) {
                 
                 case 't':
                         String[] limsDly = line.substring(3, line.length()).trim().split(";");
-                        for (int k = 0; k < limsDly.length; k++) {
-                            Reconjurer.spawnDelayMin.append(int(limsDly[k].split(",")[0]));
-                            Reconjurer.spawnDelayMax.append(int(limsDly[k].split(",")[1]));
+                        
+                        Reconjurer.spawnDelayCount = limsDly.length;
+                        Reconjurer.spawnDelayMin = new int[limsDly.length];
+                        Reconjurer.spawnDelayMax = new int[limsDly.length];
+                        
+                        if (line.contains(",")) {
+                            for (int k = 0; k < limsDly.length; k++) {
+                                String[] tmp = limsDly[k].split(",");
+                                Reconjurer.spawnDelayMin[k] = int(tmp[0]);
+                                Reconjurer.spawnDelayMax[k] = int(tmp[1]);
+                            }
+                        } else {
+                            for (int k = 0; k < limsDly.length; k++) {
+                                int[] tmp = makeDelayLevels(int(limsDly[k]));
+                                Reconjurer.spawnDelayMin[k] = tmp[0];
+                                Reconjurer.spawnDelayMax[k] = tmp[1];
+                            }
                         }
                     break;
                     
                 case 'l':
                         this.bossLevel = int(line.substring(3, line.length()));
                     break;
+                    
+                case 'w':
+                        this.waveSize = int(line.substring(3, line.length()));
+                    break;
             }
             
         } else {
-            Reconjurer.isSetBased = true;
+            if (!Reconjurer.isSetBased) {
+                Reconjurer.isSetBased = true;
+                Reconjurer.csSet = new StringList();
+            }
             
             if (!line.contains(":"))
                 line+= ":" + line;
             
-            int length = Reconjurer.csSet.size();
-            if (length < 1) {
-                Reconjurer.csSet.add(new StringList());
-                length++;
-            }
-            
-            Reconjurer.csSet.get(length - 1).append(line);
-            
-            /*for (String l : line.substring(2, line.length()).split("&")) {
-                StringList builder = new StringList();
-                
-                for (String q : l.split(";"))
-                    builder.append(q);
-                
-                Reconjurer.csSet.add(builder);
-            }*/
+            Reconjurer.csSet.append(line);
         }
     }
     
@@ -299,24 +314,32 @@ public void loadLevel(String name) {
     this.enemies = new ArrayList();
     this.spells = new ArrayList();
     
-    if (Reconjurer.spawnDelayMin.size() * Reconjurer.spawnDelayMax.size() < 1)
-        this.makeLevel(1);
+    if (Reconjurer.spawnDelayCount < 1) {
+        Reconjurer.spawnDelayCount = 3;
+        Reconjurer.spawnDelayMin = new int[Reconjurer.spawnDelayCount];
+        Reconjurer.spawnDelayMax = new int[Reconjurer.spawnDelayCount];
+        for (int k = 0; k < Reconjurer.spawnDelayCount; k++) {
+            int[] tmp = makeDelayLevels(k + 1);
+            Reconjurer.spawnDelayMin[k] = int(tmp[0]);
+            Reconjurer.spawnDelayMax[k] = int(tmp[1]);
+        }
+    }
     
-    this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin.get(0), Reconjurer.spawnDelayMax.get(0)));
+    this.nextSpawnDelay = int(random(Reconjurer.spawnDelayMin[0], Reconjurer.spawnDelayMax[0]));
     this.strikes = 0;
     
     this.deathScreenKiller = null;
 }
 
-public void makeLevel(int love) { // -t:120,360;60,240;42,72
-    int tmp = Reconjurer.csSet.size();
-    if (tmp == 0)
-        tmp = 1;
-    
-    for (int k = 0; k < tmp; k++) {
-        Reconjurer.spawnDelayMin.append(new IntList(120, 60, 42));
-        Reconjurer.spawnDelayMax.append(new IntList(360, 240, 72));
+public int[] makeDelayLevels(int lvl) {
+    switch (lvl) {
+        case 1: return new int[] { 300, 600 };
+        case 2: return new int[] { 120, 300 };
+        case 3: return new int[] { 60, 240 };
+        case 4: return new int[] { 42, 72 };
+        case 5: return new int[] { 24, 27 };
     }
+    return new int[2];
 }
 
 public String[] loadFiles(String dir) {
@@ -325,4 +348,17 @@ public String[] loadFiles(String dir) {
     if (file.isDirectory())
         return file.list();
     return new String[0];
+}
+
+public float textLabel(Object c, float x, float y, color fg, color bg, float textSize) {
+    String text = c.toString();
+    float r = this.textWidth(text);
+    
+    this.fill(bg);
+    this.rect(x, y - textSize, r, textSize);
+    
+    this.fill(fg);
+    this.text(text, x, y);
+    
+    return r;
 }

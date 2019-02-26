@@ -5,7 +5,7 @@ private static int LOADED_COUNTER = 0;
 public static int directionalComplement(float angle, int direction) {
     angle = abs(angle);
     
-    if (0 < angle && angle < QUARTER_PI || TWO_PI - QUARTER_PI < angle && angle < TWO_PI)
+    if (0 <= angle && angle < QUARTER_PI || TWO_PI - QUARTER_PI < angle && angle <= TWO_PI)
         return 0 < direction ? 2 : 3; // right, left
     
     if (QUARTER_PI < angle && angle < PI - QUARTER_PI)
