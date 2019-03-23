@@ -14,9 +14,8 @@ public class Enemy extends MovingEntity {
     public boolean isKiller;
     
     private Enemy(float distanceFromCenter, float angleOfApproache, float hitbox, float speed) {
-        super(distanceFromCenter, angleOfApproache, 
-              "enemy" + Reconjurer.directionalComplement(angleOfApproache, -1),
-              hitbox, -speed); // toward center
+        super(distanceFromCenter, angleOfApproache, "enemy", 2, 4, hitbox, -speed); // toward center
+        this.sprite.setRow(Reconjurer.directionalComplement(angleOfApproache, -1));
     }
     
     public Enemy(float distanceFromCenter, float angleOfApproache, int bossLevel, boolean isTraining, float mult) {
@@ -131,7 +130,7 @@ public class Enemy extends MovingEntity {
                 this.riddle+= " : " + this.solution;
             
             this.beforeRemoveDelay = 60;
-            this.image = super.getImage("dead");
+            this.sprite = new Sprite(super.getImage("dead"));
             this.speed = 0;
         }
     }
@@ -155,13 +154,17 @@ public class Enemy extends MovingEntity {
             return;
         }
         
-        if (this.speed != 0)
-            this.tilt+= QUARTER_PI / 45f * this.speed * this.tiltingDirection;
-        else
-            this.tilt+= QUARTER_PI / 42f * this.tiltingDirection;
+        float tilt = this.sprite.getTilt();
         
-        if (QUARTER_PI / 3f < abs(this.tilt))
+        if (this.speed != 0)
+            tilt+= QUARTER_PI / 45f * this.speed * this.tiltingDirection;
+        else
+            tilt+= QUARTER_PI / 42f * this.tiltingDirection;
+        
+        if (QUARTER_PI / 3f < abs(tilt))
             this.tiltingDirection*= -1;
+        
+        this.sprite.setTilt(tilt);
         
         if (this.radius < app.player.getHitbox() / 2f + this.hitbox / 2f) {
             app.player.kill();
@@ -173,7 +176,7 @@ public class Enemy extends MovingEntity {
             
             if (app.player.isDead()) {
                 this.isKiller = true;
-                this.image = null;
+                this.sprite = null;
             }
         }
     }

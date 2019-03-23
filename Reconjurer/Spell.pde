@@ -10,11 +10,11 @@ public class Spell extends MovingEntity {
     private int tiltingDirection;
     
     public Spell(String name, Enemy target, int accuracy) {
-        super(0, target.getAngle(), "spell", Spell.BASE_HITBOX, Spell.BASE_SPEED);
+        super(0, target.getAngle(), "spell", 1, 1, Spell.BASE_HITBOX, Spell.BASE_SPEED);
         
         this.accuracy = accuracy;
         this.target = target;
-        this.tilt = target.getAngle();
+        this.sprite.setTilt(target.getAngle());
         
         this.name = "";//name;
         this.tiltingDirection = random(1) < .5 ? 1 : -1;

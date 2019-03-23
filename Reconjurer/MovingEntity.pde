@@ -5,31 +5,32 @@ public class MovingEntity extends Entity {
     
     protected float speed;
     
-    protected float tilt;
-    
-    public MovingEntity(float distanceFromCenter, float angleOfApproache, String imageFileName, float hitBoxSize, float outMovingSpeed) {
-        super(imageFileName, hitBoxSize);
+    public MovingEntity(float distanceFromCenter, float angleOfApproache, String imageFileName, int columns, int rows, float hitBoxSize, float outMovingSpeed) {
+        super(imageFileName, columns, rows, hitBoxSize);
         
         this.radius = distanceFromCenter;
         this.angle = angleOfApproache;
         
         this.speed = outMovingSpeed;
         
-        this.tilt = random(-QUARTER_PI / 3f, QUARTER_PI / 3f);
+        this.sprite.setTilt(random(-QUARTER_PI / 3f, QUARTER_PI / 3f));
     }
     
-    public void show(Reconjurer app, String... header) {
+    public void show(final Reconjurer app, final String... header) {
         final float distanceLimit = app.height * .42f;
         app.pushMatrix();
         
         app.rotate(this.angle);
         app.translate(this.radius, 0);
+        app.rotate(-this.angle);
         
-        app.rotate(this.tilt - this.angle);
-        
-        super.show(app);
-        if (0 < header.length && this.radius < distanceLimit)
-            app.text(header[0], -app.textWidth(header[0]) / 2f, -this.hitbox / 2f);
+        super.show(app, new Runnable() {
+            @Override
+            public void run() {
+                if (0 < header.length && MovingEntity.this.radius < distanceLimit)
+                    app.text(header[0], -app.textWidth(header[0]) / 2f, -MovingEntity.this.hitbox / 2f);
+            }
+        });
         
         app.popMatrix();
         

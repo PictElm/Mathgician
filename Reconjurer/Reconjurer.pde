@@ -109,6 +109,7 @@ public void drawMenu() {
     this.textSize(this.height * .053f / 2f);
     this.textLabel(" Type the name of an enemy around you!", 0, this.height * .053f / 2f, color(255), color(0), this.height * .053f / 2f);
     this.textLabel(" Press space to toggle training mode: " + (this.isTraining ? "[on]" : "[off]"), 0, 2 * this.height * .053f / 2f, color(255), color(0), this.height * .053f / 2f);
+    this.textLabel("FPS: " + this.frameRate, 420, this.height * (1-.053/2), color(255), color(0), this.height * .053 / 2f);
     this.textSize(this.height * .053f);
     
     this.fill(0);
@@ -178,6 +179,10 @@ public void drawGame() {
     
     this.textLabel(tmp, 0, this.height * .053f, color(255), color(0), this.height * .053f);
     this.textLabel("Level: " + this.bossLevel, this.width - this.textWidth("Level: " + this.bossLevel), this.height * .053f, color(255), color(0), this.height * .053f);
+    
+    this.textSize(this.height * .053f / 2f);
+    this.textLabel("FPS: " + this.frameRate, 420, this.height * (1-.053/2), color(255), color(0), this.height * .053 / 2f);
+    this.textSize(this.height * .053f);
     
     this.fill(0);
 }

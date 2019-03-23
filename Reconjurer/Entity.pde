@@ -22,15 +22,17 @@ public static int directionalComplement(float angle, int direction) {
 
 public class Entity {
     
-    protected PImage image;
+    protected Sprite sprite;
     
     protected float hitbox;
     protected boolean isDead;
 
-    public Entity(String imageFileName, float hitboxSize) {
-        this.image = this.getImage(imageFileName);
+    public Entity(String imageFileName, int columns, int rows, float hitboxSize) {
+        this.sprite = new Sprite(this.getImage(imageFileName), columns, rows, 2);
         
         this.hitbox = hitboxSize;
+        this.sprite.setScale(this.hitbox / this.sprite.getWidth(), this.hitbox / this.sprite.getHeight());
+        
         this.isDead = false;
     }
     
@@ -49,17 +51,13 @@ public class Entity {
         return Reconjurer.LOADED_IMAGES.get(k);
     }
     
+    protected final void show(Reconjurer app, Runnable inb) {
+        if (this.sprite != null)
+            this.sprite.show(app, 0, 0, inb);
+    }
+    
     public void show(Reconjurer app) {
-        if (this.image != null) {
-            app.pushMatrix();
-            
-            app.scale(this.hitbox / this.image.width, this.hitbox / this.image.height);
-            app.translate(-this.image.width / 2f, -this.image.height / 2f);
-            
-            app.image(this.image, 0, 0);
-            
-            app.popMatrix();
-        }
+        this.show(app, null);
     }
     
     public float getHitbox() {
